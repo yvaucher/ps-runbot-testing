@@ -1,15 +1,13 @@
-odoo.define('runbot_testing_recording.DebugManager', function (require) {
-"use strict";
+/** @odoo-module **/
 
-var core = require("web.core");
-var DebugManager = require('web.DebugManager');
-var Dialog = require("web.Dialog");
-var rpc = require('web.rpc');
-var ajax = require('web.ajax');
-var _lt = core._lt;
-var utils = require('web.utils');
-var time = require('web.time');
-var CrashManager = require('web.CrashManager').CrashManager;
+import core from 'web.core';
+import { DebugMenu } from  '@web/core/debug/debug_menu';
+import { Dialog } from  'web.Dialog';
+import { rpc } from 'web.rpc';
+import { ajax } from 'web.ajax';
+import { _lt } from 'web.core';
+import { date_to_utc } from 'web.time';
+import { errorService } from '@web/core/errors/error_service';
 
 var is_runbot_start_test_registration_variable
 
@@ -137,7 +135,7 @@ var jsonRpc = function (url, fct_name, params, settings) {
                 url: url,
                 dataType: 'json',
                 type: 'POST',
-                data: JSON.stringify(data, time.date_to_utc),
+                data: JSON.stringify(data, date_to_utc),
                 contentType: 'application/json'
             }));
         });
@@ -171,7 +169,7 @@ function is_runbot_start_demo_registration () {
     return this.runbot_start_test
 }
 
-DebugManager.include({
+DebugMenu.include({
     start: function () {
         if (!(this.getParent() instanceof Dialog)) {
             this.runbot_start_test = _.bind(is_runbot_start_test_registration, this)();
@@ -231,8 +229,8 @@ DebugManager.include({
     },
 });
 
-CrashManager.include({
-    rpc_error: function (error) {
+errorService.include({
+    handleError: function (uncaughtError, retry = true) {
         var self = this
         if (is_runbot_start_test_registration_variable && _.has(map_title, error.data.exception_type)) {
             self.do_action({
@@ -253,5 +251,4 @@ CrashManager.include({
 
         };
     },
-});
 });
